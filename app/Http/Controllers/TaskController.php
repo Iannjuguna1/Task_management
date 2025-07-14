@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\tasks;
 use App\Models\users;
+use App\Notifications\TaskAssigned;
 
 class TaskController extends Controller
 {
@@ -34,9 +35,14 @@ class TaskController extends Controller
             'created_by' => 'required|exists:users,id',
         ]);
 
-        tasks::create($request->all());
+        $task = tasks::create($request->all());
 
-        return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
+    // Send notification to the assigned user
+    $user = \App\Models\users::find($task->user_id);
+    $user->notify(new TaskAssigned($task));
+
+    return redirect()->route('tasks.index')->with('success', 'Task created and user notified.');
+
     }
 
     // Show form to edit a task
@@ -77,12 +83,36 @@ class TaskController extends Controller
 
     //view your Tasks 
     public function myTasks()
-{
+    {
     // If using authentication, use auth()->id()
     $userId = auth()->id() ?? 1; // fallback to 1 for demo/testing
 
     $tasks = tasks::where('user_id', $userId)->get();
 
     return view('tasks.my_tasks', compact('tasks'));
-}
+    }
+     
+
+    //users update their tasks 
+    public function updateStatus(Request $request, $id)
+    {
+    $task = tasks::findOrFail($id);
+
+    // Ensure the authenticated user owns the task
+    if ($task->user_id !== auth()->id()) {
+        abort(403, 'Unauthorized action.');
+    }
+
+    $request->validate([
+        'status' => 'required|in:pending,in progress,completed',
+    ]);
+
+    $task->status = $request->status;
+    $task->save();
+
+    return redirect()->back()->with('success', 'Task status updated successfully.');
+    } 
+
+
+ 
 }

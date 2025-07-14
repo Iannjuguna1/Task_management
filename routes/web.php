@@ -27,3 +27,6 @@ Route::resource('tasks', TaskController::class);
 
 //route for user to view their tasks 
 Route::get('/my-tasks', [TaskController::class, 'myTasks'])->name('tasks.my');
+
+//users update tasks 
+Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
