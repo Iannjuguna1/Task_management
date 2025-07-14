@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\TaskController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +18,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+//user controller
+Route::resource('users', UserController::class);
+
+//task controller
+Route::resource('tasks', TaskController::class);
+
+//route for user to view their tasks 
+Route::get('/my-tasks', [TaskController::class, 'myTasks'])->name('tasks.my');
